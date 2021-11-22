@@ -2,14 +2,19 @@ name: Continous Integration
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main, develop]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event of ${{ github.ref }}"
+
+      - name: Cancel previous jobs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
