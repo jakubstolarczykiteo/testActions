@@ -22,8 +22,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Your pubspec.yaml file must contain the Flutter version under the environment:flutter: key.
+      - name: Get Flutter version from Pubspec.yaml
+        id: get-flutter-version
+        uses: zgosalvez/github-actions-get-flutter-version-env@v1
+
       - name: Sets up a flutter environment for use in actions
         uses: subosito/flutter-action@v1
+        with:
+          flutter-version: ${{ steps.get-flutter-version.outputs.version }}
+      - run: echo "Setup flutter environment with version ${{ steps.get-flutter-version.outputs.version }}"
 
       - name: Get flutter dependencies.
         run: flutter pub get
