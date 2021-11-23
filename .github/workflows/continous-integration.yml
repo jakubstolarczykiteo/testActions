@@ -41,3 +41,12 @@ jobs:
 
       - name: Run widget tests for our flutter project.
         run: flutter test
+
+      - name: Generate Relase Android APK
+        run: flutter build apk --release
+
+      - name: Upload generated App to the artifacts.
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-apk
+          path: build/app/outputs/apk/release/app-release.apk
