@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event of ${{ github.ref_name }}"
-
       - name: Cancel previous jobs
         uses: styfle/cancel-workflow-action@0.9.1
         with:
@@ -22,6 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      echo "The job was automatically triggered by a ${{ github.event_name }} event of ${{ steps.branch-name.outputs.current_branch }}"
       # Your pubspec.yaml file must contain the Flutter version under the environment:flutter: key.
       - name: Get Flutter version from Pubspec.yaml
         id: get-flutter-version
