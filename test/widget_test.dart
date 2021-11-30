@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:test_actions/main.dart';
 
 void main() {
@@ -26,5 +25,11 @@ void main() {
     // Verify that our counter has incremented.
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
+  });
+
+  test('random outcome test', () {
+    // final randomNumberGenerator = Random();
+    // final randomBoolean = randomNumberGenerator.nextBool();
+    expect(true, true);
   });
 }

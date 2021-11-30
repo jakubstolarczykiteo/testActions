@@ -2,15 +2,43 @@ name: Continous Integration
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main, develop]
+    paths-ignore:
+      - '**/README.md'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
+      - name: Cancel previous jobs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: PWD
+        if: always()
+        run: sh ./pwd.sh
+
+      - name: Decrypt Android keys
+        run: sh ./.github/scripts/decrypt_android_secrets.sh
+        env:
+          ANDROID_KEYS_SECRET_PASSPHRASE: ${{ secrets.ANDROID_KEYS_SECRET_PASSPHRASE }}
+
+      # Your pubspec.yaml file must contain the Flutter version under the environment:flutter: key.
+      - name: Get Flutter version from Pubspec.yaml
+        id: get-flutter-version
+        uses: zgosalvez/github-actions-get-flutter-version-env@v1
+
+      - name: Sets up a flutter environment for use in actions
+        uses: subosito/flutter-action@v1
+        with:
+          flutter-version: ${{ steps.get-flutter-version.outputs.version }}
+      - run: echo "Setup flutter environment with version ${{ steps.get-flutter-version.outputs.version }}"
 
       - name: Get flutter dependencies.
         run: flutter pub get
@@ -20,3 +48,12 @@ jobs:
 
       - name: Run widget tests for our flutter project.
         run: flutter test
+#
+      - name: Generate Relase Android APK
+        run: flutter build apk --release --dart-define=env=prod --flavor prod
+
+      - name: Upload generated App to the artifacts.
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-apk
+          path: build/app/outputs/apk/release/app-release.apk
