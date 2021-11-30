@@ -25,6 +25,22 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
+def propertyFileNameMap = [
+        dev  : 'key_dev.properties',
+        stage: 'key_staging.properties',
+        prod : 'key_prod.properties'
+]
+def propertyMap = [:]
+
+for (fileNameEntry in propertyFileNameMap.entrySet()) {
+    def keystorePropertiesFile = rootProject.file(fileNameEntry.value)
+    if (keystorePropertiesFile.exists()) {
+        def keystoreProperties = new Properties()
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+        propertyMap.put(fileNameEntry.key, keystoreProperties)
+    }
+}
+
 android {
     compileSdkVersion 30
 
@@ -50,11 +66,101 @@ android {
         versionName flutterVersionName
     }
 
+
+    signingConfigs {
+        releaseDev {
+            def keystoreProperties = propertyMap['dev']
+            if (keystoreProperties != null) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+
+        releaseStage {
+            def keystoreProperties = propertyMap['stage']
+            if (keystoreProperties != null) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+
+        releaseProd {
+            def keystoreProperties = propertyMap['prod']
+            if (keystoreProperties != null) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
+    flavorDimensions "env"
+
+    productFlavors {
+        dev {
+            dimension "env"
+
+            applicationIdSuffix ".dev"
+
+            resValue "string", "app_name", "informed dev"
+            resValue "string", "app_link_host", "localhost"
+
+            if (propertyMap.containsKey('dev')) {
+                signingConfig signingConfigs.releaseDev
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+
+        stage {
+            dimension "env"
+
+            applicationIdSuffix ".staging"
+
+            resValue "string", "app_name", "com.example.test_actions"
+            resValue "string", "app_link_host", "com.example.test_actions"
+
+            if (propertyMap.containsKey('stage')) {
+                signingConfig signingConfigs.releaseStage
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+
+        prod {
+            dimension "env"
+
+            resValue "string", "app_name", "com.example.test_actions"
+            resValue "string", "app_link_host", "com.example.test_actions"
+
+            if (propertyMap.containsKey('prod')) {
+                signingConfig signingConfigs.releaseProd
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+    }
+
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile(
+                    'proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
+
+        profile {
+            signingConfig null
+        }
+
+        debug {
+            signingConfig null
         }
     }
 }
